@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zgjy.erp.mapper.OrderdetailMapper">
+
+    <!-- 开启二级缓存 -->
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.zgjy.erp.bean.Orderdetail">
+        <id column="odid" property="odid" />
+        <result column="gid" property="gid" />
+        <result column="gname" property="gname" />
+        <result column="price" property="price" />
+        <result column="num" property="num" />
+        <result column="money" property="money" />
+        <result column="endtime" property="endtime" />
+        <result column="ender" property="ender" />
+        <result column="storeid" property="storeid" />
+        <result column="state" property="state" />
+        <result column="oid" property="oid" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        odid, gid, gname, price, num, money, endtime, ender, storeid, state, oid
+    </sql>
+
+</mapper>

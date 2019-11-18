@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zgjy.erp.mapper.GoodsMapper">
+
+    <!-- 开启二级缓存 -->
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.zgjy.erp.bean.Goods">
+        <id column="gid" property="gid" />
+        <result column="gname" property="gname" />
+        <result column="origin" property="origin" />
+        <result column="producter" property="producter" />
+        <result column="unit" property="unit" />
+        <result column="inprice" property="inprice" />
+        <result column="outprice" property="outprice" />
+        <result column="gcid" property="gcid" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        gid, gname, origin, producter, unit, inprice, outprice, gcid
+    </sql>
+
+</mapper>

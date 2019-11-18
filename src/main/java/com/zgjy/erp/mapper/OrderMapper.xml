@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zgjy.erp.mapper.OrderMapper">
+
+    <!-- 开启二级缓存 -->
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.zgjy.erp.bean.Order">
+        <id column="oid" property="oid" />
+        <result column="createtime" property="createtime" />
+        <result column="checktime" property="checktime" />
+        <result column="starttime" property="starttime" />
+        <result column="endtime" property="endtime" />
+        <result column="type" property="type" />
+        <result column="creater" property="creater" />
+        <result column="createrName" property="createrName" />
+        <result column="checker" property="checker" />
+        <result column="checkerName" property="checkerName" />
+        <result column="starter" property="starter" />
+        <result column="starterName" property="starterName" />
+        <result column="ender" property="ender" />
+        <result column="enderName" property="enderName" />
+        <result column="supplier" property="supplier" />
+        <result column="supplierName" property="supplierName" />
+        <result column="totalmoney" property="totalmoney" />
+        <result column="state" property="state" />
+        <result column="waybillsno" property="waybillsno" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        oid, createtime, checktime, starttime, endtime, type, creater, createrName, checker, checkerName, starter, starterName, ender, enderName, supplier, supplierName, totalmoney, state, waybillsno
+    </sql>
+
+</mapper>
