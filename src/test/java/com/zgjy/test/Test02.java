@@ -9,7 +9,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class Test02 {
     @Test
     public void t1(){
-        ApplicationContext ioc= new ClassPathXmlApplicationContext("applicationContext.xml");
+        ApplicationContext ioc= new ClassPathXmlApplicationContext("spring-mapper.xml");
         EmpService empService = ioc.getBean(EmpService.class);
         Emp emp = empService.selectById(1);
         System.out.println(emp);

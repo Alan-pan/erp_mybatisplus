@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+	<!--service层加入注解式的事务管理器-->
+	<context:component-scan base-package="com.zgjy.erp.service"></context:component-scan>
+
+	<!-- mybatis全局策略配置 -->
+	<bean class="com.baomidou.mybatisplus.entity.GlobalConfiguration" id="globalConfiguration">
+		<!--驼峰命名法默认是true-->
+		<property name="dbColumnUnderline" value="true"></property>
+		<!-- 全局主键策略对应的是主键Auto-->
+		<property name="idType" value="0"></property>
+		<!-- 全局表前缀-->
+		<property name="tablePrefix" value="t_"></property>
+	</bean>
+	
+
+	<!-- 事务管理器 -->
+	<bean id="dataSourceTransactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager ">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 基于注解的事务管理 @Transactional(propagation=Propagation.REQUIRED) -->
+	<tx:annotation-driven transaction-manager="dataSourceTransactionManager" />
+</beans>

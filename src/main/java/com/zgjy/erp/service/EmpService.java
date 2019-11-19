@@ -12,5 +12,5 @@ import com.baomidou.mybatisplus.service.IService;
  * @since 2019-11-18
  */
 public interface EmpService extends IService<Emp> {
-
+    public boolean login(Emp emp);
 }
