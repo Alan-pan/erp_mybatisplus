@@ -19,4 +19,27 @@
         soid, empid, opertime, storeid, goodsid, num, type
     </sql>
 
+    <select id="queryStoreoper" resultType="com.zgjy.erp.bean.StoreoperVo">
+        select * from v_storeoper
+        <where>
+            <if test="empid!=null">
+                and empid=#{empid}
+            </if>
+            <if test="starttime!=null">
+                and opertime &gt; #{starttime}
+            </if>
+            <if test="endtime!=null">
+                and opertime &lt; #{endtime}
+            </if>
+            <if test="storeid!=null">
+                and storeid=#{storeid}
+            </if>
+            <if test="goodsid!=null">
+                and goodsid=#{goodsid}
+            </if>
+            <if test="type!=null">
+                and type=#{type}
+            </if>
+        </where>
+    </select>
 </mapper>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Insert title here</title>
+    <link rel="stylesheet" href="../css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="../css/bootstrap-table.css"/>
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/popper.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap-table.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap-table-zh-CN.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap-validator.min.js"></script>
+    <script type="text/javascript" src="../js/bootstrap-validator-zh-CN.js"></script>
+    <script type="text/javascript" src="../js/req.js"></script>
+</head>
+<body>
+<div class="container">
+
+    <!-- 订单列表 -->
+    <table id="orderList"></table>
+
+    <!-- 详情订单窗口 -->
+    <div id="modal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content" style="font-size: 11px;">
+                <div class="modal-header">
+                    <h4 class="modal-title">订单详情</h4>
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <button type="button" class="btn btn-outline-secondary"
+                            id="operate" ></button>
+                    <table id="myTable" class="table table-bordered">
+                        <tbody>
+                        <tr>
+                            <td class="bg-light text-dark">流水号</td>
+                            <td id="oid"></td>
+                            <td class="bg-light text-dark">供应商</td>
+                            <td id="supplierName"></td>
+                            <td class="bg-light text-dark">审核状态</td>
+                            <td id="state"></td>
+                        </tr>
+                        <tr>
+                            <td class="bg-light text-dark">下单人</td>
+                            <td id="creater"></td>
+                            <td class="bg-light text-dark">审核人</td>
+                            <td id="checker"></td>
+                            <td class="bg-light text-dark">库管员</td>
+                            <td id="ender"></td>
+                        </tr>
+                        <tr>
+                            <td class="bg-light text-dark">下单日期</td>
+                            <td id="createTime"></td>
+                            <td class="bg-light text-dark">审核日期</td>
+                            <td id="checkTime"></td>
+                            <td class="bg-light text-dark">入库日期</td>
+                            <td id="endTime"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <table id="orderdetail"></table>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!-- 订单明细窗口 -->
+        <div id="smodal" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content" style="width: 50%; font-size: 12px;">
+                    <div class="modal-header">
+                        <h4 class="modal-title">订单明细</h4>
+                        <button type="button" class="close" data-dismiss="modal"
+                                aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-bordered">
+                            <tbody>
+                            <input type="hidden" id="odid"/>
+                            <tr>
+                                <td class="bg-light text-dark">商品编号</td>
+                                <td id="gid"></td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light text-dark">商品名称</td>
+                                <td id="gname"></td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light text-dark">数量</td>
+                                <td id="gnum"></td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light text-dark">仓库</td>
+                                <td><select id="store"></select></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <button class="btn btn-outline-secondary" id="instore">入库</button>
+                    </div>
+                    <!-- /.modal-content -->
+                </div>
+                <!-- /.modal-dialog -->
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+
+    var $orderList = $("#orderList");//获取订单的table
+    var dbcOid;
+    var dbcOrder;//双击显示的Order表
+    $(function () {
+        //商品入库
+        $("#instore").click(function(){
+            var gid=$("#gid").text();
+            var gname=$("#gname").text();
+            var num=$("#gnum").text();
+            var sid=$("#store").val();
+            var name=$("#store option:selected").val();
+            $.ajax({
+                url: "../order/instore",
+                data:{"oid":dbcOid,"odid":odid,"gid":gid,"gname":gname,"num":num,"sid":sid,"sname":name},
+                type:"post",
+                dataType:"json",
+                success: function(result){
+                    //解除绑定
+                    $("#instore").unbind("click");
+                    if(result){
+                        alert("操作成功");
+                    }else{
+                        alert('操作失败');
+                    }
+                }
+            });
+        });
+
+        //订单列表的列的定义
+        var columns = [{
+            checkbox: true,
+            align: 'center',
+            valign: 'middle'
+        }, {
+            title: '编号',
+            field: 'oid',
+            align: 'center'
+        }, {
+            title: '创建日期',
+            field: 'createtime',
+            align: 'center',
+            formatter: function (value, row, index) {
+                return getDate(value);
+            }
+        }, {
+            title: '审核日期',
+            field: 'checktime',
+            align: 'center',
+            formatter: function (value, row, index) {
+                return getDate(value);
+            }
+        }, {
+            title: '确认日期',
+            field: 'starttime',
+            align: 'center',
+            formatter: function (value, row, index) {
+                return getDate(value);
+            }
+        }, {
+            title: '结束日期',
+            field: 'endtime',
+            align: 'center',
+            formatter: function (value, row, index) {
+                return getDate(value);
+            }
+        }, {
+            title: '创建人',
+            field: 'createrName',
+            align: 'center'
+        }, {
+            title: '审核人',
+            field: 'checkerName',
+            align: 'center'
+        }, {
+            title: '确认人',
+            field: 'starterName',
+            align: 'center'
+        }, {
+            title: '结束人',
+            field: 'enderName',
+            align: 'center'
+        }, {
+            title: '供应商',
+            field: 'supplierName',
+            align: 'center'
+        }, {
+            title: '审核状态',
+            field: 'state',
+            align: 'center',
+            formatter: function (value) {
+                return getState(value);
+            }
+        }];
+        //订单列表的列的定义
+        $orderList.bootstrapTable({
+            url: '../order/queryAll',
+            method: "post",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded",
+            striped: true,//隔行变色
+            cache: false, //是否使用缓存
+            showColumns: false,// 列
+            pagination: true, //分页
+            paginationLoop: false,
+            showPaginationSwitch: false,//是否显示数据条数选择框
+            sortable: false, //是否启用排序
+            singleSelect: false,
+            search: false, //显示搜索框
+            buttonsAlign: "right", //按钮对齐方式
+            showRefresh: false,//是否显示刷新按钮
+            sidePagination: "server", //服务端处理分页
+            pageNumber: 1,
+            pageSize: 5,
+            pageList: [5, 10, 25, 50],
+            undefinedText: '',
+            uniqueId: "oid", //每一行的唯一标识，一般为主键列
+            queryParamsType: '',
+            queryParams: queryParams,//传递参数（*）
+            columns: columns,
+            onDblClickRow: function (row, $element, field) {
+                $("#orderdetail").bootstrapTable('destroy');//销毁创建的table对象
+                $("#myTable td:odd").text("");//清除表格内容
+                //设置oid 显示传参数
+                dbcOid = row.oid;
+                //row为此行数据
+                //模态框下部分数据 order
+                showOrderdetai(row);
+                //点击显示模态框
+                $("#modal").modal('show');
+                //模态框上部分数据
+                initModal(row);
+            }
+        });
+
+        //初始化模态框上半部分
+        function initModal(data){
+            $("#operate").show();
+            if(data.state==0){
+                $("#operate").text("审核");
+            }else if(data.state==1){
+                $("#operate").text("确认");
+            }else{
+                $("#operate").hide();
+            }
+            $("#operate").click(function(){
+                $.ajax({
+                    url: "../order/checkOrcomfire",
+                    data: {"oid": dbcOid,"state":data.state},
+                    type: "post",
+                    dataType: "json",
+                    success:function(data){
+                        $("#operate").unbind("click");
+                        //模态框隐藏
+                        $("#modal").modal('hide'); //只能单引号
+                        //table刷新
+                        $orderList.bootstrapTable("refresh");
+                    }
+                })
+            });
+
+            // console.log(data);
+            $("#oid").text(data.oid);
+            $("#supplierName").text(data.supplierName);
+            $("#state").text(getState(data.state));//审核状态
+            $("#creater").text(data.createrName);//下单人
+            $("#checker").text(data.checkerName);//审核人
+            $("#ender").text(data.enderName);//库管员
+            $("#createTime").text(getDate(data.createtime));
+            $("#checkTime").text(getDate(data.checktime));
+            $("#endTime").text(getDate(data.endtime));
+
+
+        }
+        //得到查询的参数
+        function queryParams(params) {
+            var data = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+                pageSize: params.pageSize, //页面大小
+                pageNumber: params.pageNumber, //页码
+            };
+            return data;
+        };
+    })
+
+    //双击显示模态框下一部分xxx
+    function showOrderdetai(e) {
+        var columns = [
+            {
+                title : '订单详情编号',
+                field : 'odid',
+                align : 'center'
+            },{
+            title: '商品编号',
+            field: 'gid',
+            align: 'center'
+        }, {
+            title: '商品名称',
+            field: 'gname',
+            align: 'center'
+        }, {
+            title: '价格',
+            field: 'price',
+            align: 'center'
+        }, {
+            title: '数量',
+            field: 'num',
+            align: 'center'
+        }, {
+            title: '金额',
+            field: 'money',
+            align: 'center'
+        }, {
+            //订单详情表
+            title: '入库状态',
+            field: 'state',
+            align: 'center',
+            formatter: function (value, row, index) {
+                if (value == 3) {
+                    return '已入库';
+                } else{
+                    return '未入库';
+                }
+            }
+        }];
+
+        var oid;
+        //双击显示订单详情表下一部分xxx
+        $("#orderdetail").bootstrapTable(
+            {
+                url: '../orderDetail/queryOrderDetail',
+                method: "post",
+                dataType: "json",
+                data: e.orderdetails,
+                contentType: "application/x-www-form-urlencoded",
+                striped: true,//隔行变色
+                cache: false, //是否使用缓存
+                showColumns: false,// 列
+                pagination: true, //分页
+                paginationLoop: false,
+                showPaginationSwitch: false,//是否显示数据条数选择框
+                sortable: false, //是否启用排序
+                singleSelect: false,
+                search: false, //显示搜索框
+                buttonsAlign: "right", //按钮对齐方式
+                showRefresh: false,//是否显示刷新按钮
+                sidePagination: "server", //服务端处理分页
+                pageNumber: 1,
+                pageSize: 5,
+                pageList: [5, 10, 25, 50],
+                undefinedText: '--',
+                uniqueId: "did", //每一行的唯一标识，一般为主键列
+                queryParamsType: '',
+                queryParams: queryParams2,//传递参数（*）
+                columns: columns,
+                onDblClickRow : function(row, $element, field) {
+                    $("#store").empty();
+                    odid=row.odid;
+                    if(row.state==2){//已确认状态
+                        $("#smodal").modal('show');
+                        $("#gid").text(row.gid);
+                        $("#gname").text(row.gname);
+                        $("#gnum").text(row.num);
+                        //查询所有仓库的ajax
+                        $.ajax({
+                            url: "../store/queryAll",
+                            type:"post",
+                            dataType:"json",
+                            success: function(result){
+                                for(var i in result){
+                                    $("#store").append("<option value='"+result[i].sid+"'>"+result[i].name+"</option>")
+                                }
+                            }
+                        });
+                    }else{
+                        alert('该订单详情还没有确认');
+                    }
+                }
+            });
+
+
+
+        //url传递参数
+        function queryParams2(params) {
+            var data = {
+                pageSize: params.pageSize, //页面大小
+                pageNumber: params.pageNumber, //页码
+                oid: dbcOid
+            };
+            return data;
+        };
+
+    }
+
+    //设置state 审核。。。
+    function getState(data) {
+        switch (parseInt(data)) {
+            case 0:
+                return '未审核';
+                break;
+            case 1:
+                return '已审核';
+                break;
+            case 2:
+                return '已确认';
+                break;
+            case 3:
+                return '已入库';
+                break;
+            case 4:
+                return '已出库';
+                break;
+        }
+    }
+
+    //日期格式
+    function getzf(num) {
+        if (parseInt(num) < 10) {
+            num = '0' + num;
+        }
+        return num;
+    }
+
+    //日期格式
+    function getDate(data) {
+        if (data != null) {
+            var oDate = new Date(data), oYear = oDate.getFullYear(), oMonth = oDate
+                .getMonth() + 1, oDay = oDate.getDate(), oHour = oDate
+                .getHours(), oMin = oDate.getMinutes(), oSen = oDate
+                .getSeconds(), oTime = oYear + '-' + getzf(oMonth) + '-'
+                + getzf(oDay);
+            return oTime;
+        }
+        return null;
+    }
+
+</script>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" href="../css/bootstrap.min.css" />
+<link rel="stylesheet" href="../css/bootstrap-table.css" />
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/popper.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-validator.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-validator-zh-CN.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div class="toolbar">
+			<div class="form-inline" role="form">
+				<div class="form-group">
+					<span>仓库:</span> <select id="store"></select>
+				</div>
+				<span class="alert"></span>
+				<div class="form-group">
+					<span>商品:</span> <select id="goods"></select>
+				</div>
+				<button class="btn" id="search">查询</button>
+
+			</div>
+		</div>
+		<table id="table"></table>
+		<span class="alert" id="alert" style="margin-left: 40%;"></span>
+	</div>
+</body>
+<script type="text/javascript">
+	var $table = $("#table");
+	$(function() {
+		//直接查询仓库
+		$.ajax({
+			url:"../store/queryAll",
+			data:"",
+			type:"post",
+			dataType:"json",
+			success:function (data) {
+				//清除下拉列表
+				$("#store").empty();
+				$(data).each(function (i,dom) {
+					$("#store").append("<option value='"+dom.sid+"'>"+dom.name+"</option>")
+				})
+			}
+		})
+		//直接查询商品
+		//直接查询仓库
+		$.ajax({
+			url:"../goods/queryAll",
+			data:"",
+			type:"post",
+			dataType:"json",
+			success:function (data) {
+				//清除下拉列表
+				$("#goods").empty();
+				$(data).each(function (i,dom) {
+					$("#goods").append("<option value='"+dom.gid+"'>"+dom.gname+"</option>")
+				})
+			}
+		})
+
+		var columns = [
+				{
+					checkbox : true,
+					align : 'center',
+					valign : 'middle'
+				},
+				{
+					title : '编号',
+					field : 'sdid',
+					align : 'center'
+				},
+				{
+					title : '仓库',
+					field : 'sname',
+					align : 'center'
+				},
+				{
+					title : '商品',
+					field : 'gname',
+					align : 'center'
+				},
+				{
+					title : '数量',
+					field : 'num',
+					align : 'center'
+				} ];
+
+		$table.bootstrapTable({
+			url : '../storedetail/list',
+			method : "post",
+			dataType : "json",
+			contentType : "application/x-www-form-urlencoded",
+			striped : true,//隔行变色
+			cache : false, //是否使用缓存
+			showColumns : false,// 列
+			pagination : true, //分页
+			paginationLoop : false,
+			showPaginationSwitch : false,//是否显示数据条数选择框
+			sortable : false, //是否启用排序
+			singleSelect : false,
+			search : false, //显示搜索框
+			buttonsAlign : "right", //按钮对齐方式
+			showRefresh : false,//是否显示刷新按钮
+			sidePagination : "server", //服务端处理分页
+			pageNumber : 1,
+			pageSize : 5,
+			pageList : [ 5, 10, 25, 50 ],
+			undefinedText : '--',
+			uniqueId : "sdid", //每一行的唯一标识，一般为主键列
+			queryParamsType : '',
+			queryParams : queryParams,//传递参数（*）
+			columns : columns
+		});
+
+		//得到查询的参数
+		function queryParams(params) {
+			var data = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+				pageSize : params.pageSize, //页面大小
+				pageNumber : params.pageNumber, //页码
+				sid:$("#store").val(),
+				gid:$("#goods").val()
+			};
+			return data;
+		};
+
+		$("#search").click(function() {
+			$table.bootstrapTable('refresh');
+		})
+
+
+	});
+</script>
+</html>

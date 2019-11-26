@@ -13,13 +13,17 @@
     <!--扫描-->
     <context:component-scan base-package="com.zgjy.erp.controller"></context:component-scan>
 
+    <!--过滤静态资源-->
+    <mvc:resources location="/css/" mapping="/css/**" />
+    <mvc:resources location="/js/" mapping="/js/**" />
+
     <!--视图解析器-->
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" id="viewResolver">
         <property name="prefix" value="/WEB-INF/"></property>
         <property name="suffix" value=".jsp"></property>
     </bean>
     <!--注解支持-->
-    <mvc:annotation-driven>
+    <mvc:annotation-driven conversion-service="convertService">
         <mvc:message-converters>
             <!--json转换-->
             <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
@@ -31,4 +35,13 @@
             </bean>
         </mvc:message-converters>
     </mvc:annotation-driven>
+
+    <bean id="convertService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <set>
+                <!-- 引入自定义的类型转换的bean -->
+                <bean class="com.zgjy.erp.api.StringConvertDate"></bean>
+            </set>
+        </property>
+    </bean>
 </beans>

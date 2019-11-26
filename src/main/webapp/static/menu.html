@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/zTreeStyle.css">
+    <title>Insert title here</title>
+    <style type="text/css">
+        .ztree li span.button.add {
+            margin-right: 2px;
+            background-position: -144px 0;
+            vertical-align: top;
+            *vertical-align: middle
+        }
+    </style>
+    <script src="../js/jquery.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.ztree.core.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.ztree.excheck.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.ztree.exedit.min.js"></script>
+</head>
+<body>
+<div class="row">
+    <div class="col-md-2">
+        <ul id="treeDemo" class="ztree"></ul>
+    </div>
+    <div class="col-md-10">
+        <h4 class="mb-3">权限操作</h4>
+        <form id="myForm" class="form-horizontal" role="form" method="post">
+            <div class="form-group">
+                <label for="pid">父菜单</label> <select class="form-control"
+                                                     id="pid" name="pid">
+            </select>
+            </div>
+            <div class="form-group">
+                <div class="form-group">
+                    <label for="name">所操作的菜单</label> <input type="text" id="name"
+                                                            name="name" class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-group">
+                    <label for="url">菜单url</label> <input type="text" id="url"
+                                                          name="url" class="form-control">
+                </div>
+            </div>
+
+            <input type="hidden" id="mid" name="mid"/>
+            <button type="button" class="btn btn-default" id="addPrivilege">提交</button>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var setting = {
+        view: {
+            addHoverDom: addHoverDom,
+            removeHoverDom: removeHoverDom,
+            selectedMulti: false
+        },
+        edit: {
+            enable: true,
+            editNameSelectAll: true,
+            showRemoveBtn: showRemoveBtn,
+            showRenameBtn: showRenameBtn
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        callback: {//回调
+            beforeDrag: beforeDrag,
+            beforeEditName: beforeEditName,//在编辑树节点之前调用后面这个方法
+            beforeRemove: beforeRemove
+        }
+    };
+    var res;
+    var log, className = "dark";
+
+    function beforeDrag(treeId, treeNodes) {
+        return false;
+    }
+
+    //编辑
+    function beforeEditName(treeId, treeNode) {
+        if (treeNode.pId == null) {
+            $("#pid").val(0);
+            $("#name").val(treeNode.name);
+        } else {
+            //清空所有。。。
+            $("#pid").html("");
+            //父节点名字
+            var pname = treeNode.getParentNode().name;
+            //展示所有父节点
+            var str = "";
+            console.log(res);
+            $(res).each(function (i, dom) {
+                console.log(i);
+                //由于js的
+
+                //判断是父节点
+                if (dom.pId == 0) {
+                    //判断是此节点的父节点
+                    if (treeNode.pId == dom.id) {
+                        str += "<option value='" + treeNode.pId + "' selected>" + pname + "</option>";
+                    } else {
+                        //其他父节点id
+                        str += "<option value='" + dom.id + "'>" + dom.name + "</option>";
+                    }
+                }
+            });
+
+            $("#pid").append(str);
+            $("#mid").val(treeNode.id);//更新的mid
+            $("#name").val(treeNode.name);
+            $("#url").val(treeNode.url);
+
+        }
+
+        return false;
+    }
+
+    //删除
+    function beforeRemove(treeId, treeNode) {
+
+        return false;
+    }
+
+    //展示删除按钮
+    function showRemoveBtn(treeId, treeNode) {
+        return true;
+    }
+
+    //展示编辑按钮
+    function showRenameBtn(treeId, treeNode) {
+        console.log(treeNode);
+        //pId是0则是父菜单
+        if (treeNode.pId == 0 || treeNode.pId == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    //显示添加按钮
+    function addHoverDom(treeId, treeNode) {
+        if (treeNode.pId != null) {
+            return false;
+        }
+        var sObj = $("#" + treeNode.tId + "_span");
+        if (treeNode.editNameFlag || $("#addBtn_" + treeNode.tId).length > 0) return;
+        var addStr = "<span class='button add' id='addBtn_" + treeNode.tId
+            + "' title='add node' onfocus='this.blur();'></span>";
+        sObj.after(addStr);
+        var btn = $("#addBtn_" + treeNode.tId);
+        //添加
+        if (btn) btn.bind("click", function () {
+            //父节点添加子节点
+            //获取当前id作为pid
+            var pId = treeNode.id;
+            //父节点的name
+            var pname = treeNode.name;
+            var str = "<option value='" + pId+ "' selected>" + pname + "</option>";
+            $("#pid").append(str);
+
+            // 执行添加操作
+
+            return false;
+        });
+    };
+
+    function removeHoverDom(treeId, treeNode) {
+        $("#addBtn_" + treeNode.tId).unbind().remove();
+    };
+
+    function selectAll() {
+        var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+        zTree.setting.edit.editNameSelectAll = $("#selectAll").attr("checked");
+    }
+    var refush=function(){
+        $.ajax({
+            url: "../menu/queryMenus",
+            type: "post",
+            dataType: "json",
+            success: function (result) {
+                $.fn.zTree.init($("#treeDemo"), setting, result);
+                res = result;
+            }
+        });
+    }
+
+    $(function () {
+
+        refush();
+
+        //点击提交更新/添加菜单
+        $("#addPrivilege").click(function () {
+            //更新操作  添加操作 二合一
+                $.ajax({
+                    url: "../menu/updateMenus",
+                    data: $("#myForm").serialize(),
+                    type: "post",
+                    dataType: "json",
+                    success: function (result) {
+                        if (result) {
+                            alert("操作成功");
+                            //成功并刷新树
+                            refush();
+                        } else {
+                            alert("操作失败");
+                        }
+                    }
+                });
+        })
+    })
+
+
+</script>
+</body>
+</html>

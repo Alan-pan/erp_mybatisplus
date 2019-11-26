@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.enums.IdType;
 import com.baomidou.mybatisplus.activerecord.Model;
 import com.baomidou.mybatisplus.annotations.TableName;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -25,7 +27,7 @@ public class Dept extends Model<Dept> {
     private Integer did;
     private String name;
     private String tel;
-
+    Map map=new HashMap<>();
 
     public Integer getDid() {
         return did;

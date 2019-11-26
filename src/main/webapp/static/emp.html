@@ -117,6 +117,56 @@
 	});
 	var $alert = $('#alert').hide();//操作弹出框
 
+	//获取员工的角色
+	function toRole(id){
+		var setting = {
+			check: {
+				enable: true
+			},
+			data: {
+				simpleData: {
+					enable: true
+				}
+			}
+		};
+		$.ajax({
+			url: "../role/queryRolesByEid?eid="+id,
+			type:"get",
+			dataType:"json",
+			success: function(result){
+				$("#roleModal").modal('show');
+				$.fn.zTree.init($("#treeDemo"), setting, result);
+			}
+		});
+		eid=id;//将id赋值给全局变量eid
+	}
+	//为用户添加角色
+	function addRole(){
+		var rids="";
+		//获取所选中的角色id
+		var treeObj = $.fn.zTree.getZTreeObj("treeDemo");
+		var nodes = treeObj.getCheckedNodes();//获取所选中的节点
+		var rids=new Array();
+		for(var i=0;i<nodes.length;i++){
+			rids[i]="rid="+nodes[i].id;
+		}
+		var join = rids.join("&");
+
+		// alert(join);
+		$.ajax({
+			url: "../role/addEmpRoles?eid="+eid+"&"+join,
+			type:"get",
+			dataType:"json",
+			success: function(result){
+				if(result.status==1){
+					alert('操作成功');
+				}else{
+					alert('操作失败');
+				}
+				$("#roleModal").modal('hide');
+			}
+		});
+	}
 	$(function(){
 		//点击查询
 		$("#search").click(function(){

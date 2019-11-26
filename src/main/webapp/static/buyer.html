@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" href="../css/bootstrap.min.css" />
+<link rel="stylesheet" href="../css/bootstrap-table.css" />
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/popper.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-validator.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-validator-zh-CN.js"></script>
+
+</head>
+<body>
+	<div class="container">
+		<div class="card">
+			<div class="card-header">进货申请</div>
+			<div class="card-body">
+				<form id="formSearch" class="form-inline">
+					<div class="form-group">
+						<label>供应商</label> <select class="form-control" id="supplier">
+
+						</select>
+					</div>
+				</form>
+			</div>
+		</div>
+		<table id="table"></table>
+		<div style="display: none;">总价：</div>
+		<span class="alert" id="alert" style="margin-left: 40%;"></span>
+
+		<div id="toolbar" class="btn-group">
+			<span>&nbsp;</span>
+			<button id="btn_add" type="button" class="btn btn-outline-secondary">
+				<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+			</button>
+			
+			<button id="btn_apply" type="button" class="btn btn-outline-secondary">
+				<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>申请
+			</button>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	var $table = $("#table");
+	var $alert = $('#alert').hide();
+	var goodsList;
+	$(function() {
+
+		//获取所有的供应商
+		$.ajax({
+			url: "../supplier/queryAll?type=1",
+			type:"get",
+			dataType:"json",
+			success: function(result){
+					$("#supplier").append("<option>请选择供应商</option>");
+				for(var i=0;i<result.length;i++){
+					$("#supplier").append("<option value='"+result[i].sid+"'>"+result[i].name+"</option>");
+				}
+			}
+		});
+
+		//获取所有的商品
+		$.ajax({
+			url: "../goods/queryAll",
+			type:"post",
+			dataType:"json",
+			success: function(result){//emp{}
+				goodsList=result;
+			}
+		});
+
+
+		//点击新增按钮
+		$("#btn_add").click(
+			function() {
+				var index = $table.bootstrapTable('getData').length;
+				var html = '<select onchange="fn(this);" id="goods"><option value="-1">请选择</option>';
+				for ( var i in goodsList) {
+					html += "<option value='"+goodsList[i].gid+"'>"
+							+ goodsList[i].gname + "</option>";
+				}
+				html += "</select>";
+				$table.bootstrapTable(
+					'insertRow',//向当前的表格中插入一行数据
+					{
+						index : index,
+						row : {
+							gid : '',
+							gname : html,
+							inprice : '',
+							num : '<input type="text" class="num" onblur="fn2(this)"/>',
+							money : ''
+						}
+				});
+		    })
+		});
+		
+		//点击申请按钮
+		$('#btn_apply').click(function(){
+			var json=JSON.stringify($table.bootstrapTable('getData'));
+			var sid=$("#supplier").val();
+			var supplierName=$("#supplier option:selected").text();
+			$.ajax({
+				url: "../order/add",
+				type:"post",
+				data:{"sid":sid,"supplierName":supplierName,"json":json},
+				dataType:"json",
+				success: function(result){//emp{}
+					goodsList=result;
+				}
+			});
+		})
+
+		var columns = [
+				{
+					checkbox : true,
+					align : 'center',
+					valign : 'middle'
+				},
+				{
+					title : '商品编号',
+					field : 'gid',
+					align : 'center'
+				},
+				{
+					title : '商品名称',
+					field : 'gname',
+					align : 'center'
+				},
+				{
+					title : '价格',
+					field : 'price',
+					align : 'center'
+				},
+				{
+					title : '数量',
+					field : 'num',
+					align : 'center'
+				},
+				{
+					title : '总额',
+					field : 'money',
+					align : 'center'
+				},
+				{
+					title : '操作',
+					field : 'gid',
+					align : 'center',
+					formatter : function(value, row, index) {
+						var a = '<a href="javascript:" class="btn-link" onclick="del(\''
+								+ row.gid + '\')">删除</a>';
+						return a;
+					}
+				} ];
+
+		$table.bootstrapTable({
+			method : "post",
+			dataType : "json",
+			contentType : "application/x-www-form-urlencoded",
+			toolbar : '#toolbar',
+			striped : true,//隔行变色
+			cache : false, //是否使用缓存
+			showColumns : false,// 列
+			clickEdit : true,
+			clickToSelect : true,
+			pagination : false, //分页
+			paginationLoop : false,
+			showPaginationSwitch : false,//是否显示数据条数选择框
+			sortable : false, //是否启用排序
+			singleSelect : false,
+			search : false, //显示搜索框
+			buttonsAlign : "right", //按钮对齐方式
+			showRefresh : false,//是否显示刷新按钮
+			sidePagination : "server", //服务端处理分页
+			pageNumber : 1,
+			pageSize : 5,
+			pageList : [ 5, 10, 25, 50 ],
+			undefinedText : '--',
+			uniqueId : "did", //每一行的唯一标识，一般为主键列
+			queryParamsType : '',
+			queryParams : queryParams,//传递参数（*）
+			columns : columns,
+			onClickCell : function(field, value, row, $element) {
+				$element.attr('contenteditable', true);
+				$element.blur(function() {
+					var index = $element.parent().data('index');
+					var tdValue = $element.html();
+					saveData(index, field, tdValue);
+				})
+			}
+		});
+		//查询参数
+		function queryParams(params) {
+			var data = {
+				pageSize : params.pageSize, //页面大小
+				pageNumber : params.pageNumber
+			};
+			return data;
+		};
+
+	//下拉框选择 商品
+	function fn(e) {
+		for ( var i in goodsList) {
+			if ($(e).val() == goodsList[i].gid) {
+				$(e).parent().prev().text(goodsList[i].gid);//设置当前列的前一列值
+				$(e).find("option[value=" + $(e).val() + "]").attr('selected',
+						'selected');
+				
+				$(e).parent().next().text(goodsList[i].inprice);//设置当前列的后一列值
+			}
+		}
+		var index = $(e).parent().parent().data('index');
+		saveData(index, 'gid', $(e).parent().prev().html());
+		saveData(index, 'gname',$(e).find("option[value=" + $(e).val() + "]").text());
+		saveData(index, 'price', $(e).parent().next().html());
+	}
+	//计算价格
+	function fn2(e) {
+		var index = $(e).parent().parent().data('index');
+		var price = $(e).parent().prev().text() || 0;
+		var num = $(e).val();
+		$(e).parent().next().text(price * num);
+		saveData(index, 'num', num);
+		saveData(index, 'money', price * num);
+	}
+
+	function saveData(index, field, value) {
+		$table.bootstrapTable('updateCell', {//更新单元格
+			index : index, //行索引
+			field : field, //列名
+			value : value
+		//cell值
+		})
+	}
+
+	function showAlert(title, type) {
+		$alert.attr('class', 'alert alert-' + type || 'success').html(
+				'<i class="glyphicon glyphicon-check"></i> ' + title).show()
+		setTimeout(function() {
+			$alert.hide()
+		}, 3000)
+	}
+
+	function del(id) {
+		$table.bootstrapTable('remove', {
+			field : 'gid',
+			values : id
+		});
+	}
+</script>
+</html>
