@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xsi:schemaLocation=" http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd  "
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans">
+
+	<!--触发的事件的bean对象-->
+	<bean id="job" class="com.zgjy.erp.api.MailJob"></bean>
+	<!-- 任务类描述 -->
+	<bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<!--触发的bean-->
+		<property name="targetObject" ref="job"></property>
+		<!--执行的方法名-->
+		<property name="targetMethod" value="sendEmail"></property>
+	</bean>
+	<!-- 触发器  -->
+	<bean id="mailTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="jobDetail"></property>
+		<!--触发时间cron表达式, 七子表达式. 7个域 -->
+		<property name="cronExpression" value="0 * * * * ?"></property>
+	</bean>
+	<!-- 任务调度管理容器 -->
+	<bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" >
+		<property name="triggers">
+			<list>
+				<ref bean="mailTrigger"/>
+			</list>
+		</property>
+	</bean>
+</beans>	

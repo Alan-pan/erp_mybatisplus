@@ -1,7 +1,11 @@
 package com.zgjy.erp.mapper;
 
+import com.baomidou.mybatisplus.plugins.Page;
 import com.zgjy.erp.bean.Store;
 import com.baomidou.mybatisplus.mapper.BaseMapper;
+import com.zgjy.erp.bean.StoreWarn;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +17,5 @@ import com.baomidou.mybatisplus.mapper.BaseMapper;
  */
 public interface StoreMapper extends BaseMapper<Store> {
 
+    List<StoreWarn> queryStoreWarn(Page page);
 }

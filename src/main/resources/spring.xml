@@ -4,5 +4,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <import resource="classpath:spring-mapper.xml"></import>
     <import resource="classpath:spring-tx.xml"></import>
+    <import resource="classpath:spring-redis.xml"></import>
+    <import resource="classpath:spring-mail.xml"></import>
+    <import resource="classpath:spring-job.xml"></import>
 
 </beans>

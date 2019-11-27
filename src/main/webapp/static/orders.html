@@ -33,7 +33,7 @@
                 </div>
                 <div class="modal-body">
                     <button type="button" class="btn btn-outline-secondary"
-                            id="operate" ></button>
+                            id="operate"></button>
                     <table id="myTable" class="table table-bordered">
                         <tbody>
                         <tr>
@@ -118,23 +118,23 @@
     var dbcOrder;//双击显示的Order表
     $(function () {
         //商品入库
-        $("#instore").click(function(){
-            var gid=$("#gid").text();
-            var gname=$("#gname").text();
-            var num=$("#gnum").text();
-            var sid=$("#store").val();
-            var name=$("#store option:selected").val();
+        $("#instore").click(function () {
+            var gid = $("#gid").text();
+            var gname = $("#gname").text();
+            var num = $("#gnum").text();
+            var sid = $("#store").val();
+            var name = $("#store option:selected").val();
             $.ajax({
                 url: "../order/instore",
-                data:{"oid":dbcOid,"odid":odid,"gid":gid,"gname":gname,"num":num,"sid":sid,"sname":name},
-                type:"post",
-                dataType:"json",
-                success: function(result){
+                data: {"oid": dbcOid, "odid": odid, "gid": gid, "gname": gname, "num": num, "sid": sid, "sname": name},
+                type: "post",
+                dataType: "json",
+                success: function (result) {
                     //解除绑定
                     $("#instore").unbind("click");
-                    if(result){
+                    if (result) {
                         alert("操作成功");
-                    }else{
+                    } else {
                         alert('操作失败');
                     }
                 }
@@ -246,33 +246,18 @@
                 initModal(row);
             }
         });
+        var ajaxData;
 
         //初始化模态框上半部分
-        function initModal(data){
+        function initModal(data) {
             $("#operate").show();
-            if(data.state==0){
+            if (data.state == 0) {
                 $("#operate").text("审核");
-            }else if(data.state==1){
+            } else if (data.state == 1) {
                 $("#operate").text("确认");
-            }else{
+            } else {
                 $("#operate").hide();
             }
-            $("#operate").click(function(){
-                $.ajax({
-                    url: "../order/checkOrcomfire",
-                    data: {"oid": dbcOid,"state":data.state},
-                    type: "post",
-                    dataType: "json",
-                    success:function(data){
-                        $("#operate").unbind("click");
-                        //模态框隐藏
-                        $("#modal").modal('hide'); //只能单引号
-                        //table刷新
-                        $orderList.bootstrapTable("refresh");
-                    }
-                })
-            });
-
             // console.log(data);
             $("#oid").text(data.oid);
             $("#supplierName").text(data.supplierName);
@@ -283,9 +268,24 @@
             $("#createTime").text(getDate(data.createtime));
             $("#checkTime").text(getDate(data.checktime));
             $("#endTime").text(getDate(data.endtime));
-
-
+            ajaxData = data;
         }
+
+        $("#operate").click(function (ajaxData) {
+            $.ajax({
+                url: "../order/checkOrcomfire",
+                data: {"oid": dbcOid, "state": ajaxData.state},
+                type: "post",
+                dataType: "json",
+                success: function (data) {
+                    //模态框隐藏
+                    $("#modal").modal('hide'); //只能单引号
+                    //table刷新
+                    $orderList.bootstrapTable("refresh");
+                }
+            });
+        });
+
         //得到查询的参数
         function queryParams(params) {
             var data = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
@@ -300,42 +300,42 @@
     function showOrderdetai(e) {
         var columns = [
             {
-                title : '订单详情编号',
-                field : 'odid',
-                align : 'center'
-            },{
-            title: '商品编号',
-            field: 'gid',
-            align: 'center'
-        }, {
-            title: '商品名称',
-            field: 'gname',
-            align: 'center'
-        }, {
-            title: '价格',
-            field: 'price',
-            align: 'center'
-        }, {
-            title: '数量',
-            field: 'num',
-            align: 'center'
-        }, {
-            title: '金额',
-            field: 'money',
-            align: 'center'
-        }, {
-            //订单详情表
-            title: '入库状态',
-            field: 'state',
-            align: 'center',
-            formatter: function (value, row, index) {
-                if (value == 3) {
-                    return '已入库';
-                } else{
-                    return '未入库';
+                title: '订单详情编号',
+                field: 'odid',
+                align: 'center'
+            }, {
+                title: '商品编号',
+                field: 'gid',
+                align: 'center'
+            }, {
+                title: '商品名称',
+                field: 'gname',
+                align: 'center'
+            }, {
+                title: '价格',
+                field: 'price',
+                align: 'center'
+            }, {
+                title: '数量',
+                field: 'num',
+                align: 'center'
+            }, {
+                title: '金额',
+                field: 'money',
+                align: 'center'
+            }, {
+                //订单详情表
+                title: '入库状态',
+                field: 'state',
+                align: 'center',
+                formatter: function (value, row, index) {
+                    if (value == 3) {
+                        return '已入库';
+                    } else {
+                        return '未入库';
+                    }
                 }
-            }
-        }];
+            }];
 
         var oid;
         //双击显示订单详情表下一部分xxx
@@ -366,10 +366,10 @@
                 queryParamsType: '',
                 queryParams: queryParams2,//传递参数（*）
                 columns: columns,
-                onDblClickRow : function(row, $element, field) {
+                onDblClickRow: function (row, $element, field) {
                     $("#store").empty();
-                    odid=row.odid;
-                    if(row.state==2){//已确认状态
+                    odid = row.odid;
+                    if (row.state == 2) {//已确认状态
                         $("#smodal").modal('show');
                         $("#gid").text(row.gid);
                         $("#gname").text(row.gname);
@@ -377,20 +377,19 @@
                         //查询所有仓库的ajax
                         $.ajax({
                             url: "../store/queryAll",
-                            type:"post",
-                            dataType:"json",
-                            success: function(result){
-                                for(var i in result){
-                                    $("#store").append("<option value='"+result[i].sid+"'>"+result[i].name+"</option>")
+                            type: "post",
+                            dataType: "json",
+                            success: function (result) {
+                                for (var i in result) {
+                                    $("#store").append("<option value='" + result[i].sid + "'>" + result[i].name + "</option>")
                                 }
                             }
                         });
-                    }else{
+                    } else {
                         alert('该订单详情还没有确认');
                     }
                 }
             });
-
 
 
         //url传递参数

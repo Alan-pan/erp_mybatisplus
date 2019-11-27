@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" href="../css/bootstrap.min.css" />
+<link rel="stylesheet" href="../css/bootstrap-table.css" />
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/popper.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table-zh-CN.min.js"></script>
+</head>
+<body>
+	<div class="container">
+		<button type="button" class="btn btn-default" id="sendEmail">发送邮件</button>
+		<table id="table"></table>
+	</div>
+</body>
+<script type="text/javascript">
+	var $table = $("#table");
+
+	$(function() {
+
+		$("#sendEmail").click(function () {
+			$.ajax({
+				url: "../store/sendEmail",
+				type:"post",
+				dataType:"json",
+				success: function(result){//emp{}
+					if(result.status==1){
+						alert('操作成功');
+					}else if(result.status==2){
+						alert('庫存不存在不足');
+					}else{
+						alert('操作失敗');
+					}
+				}
+			});
+		})
+
+		var columns = [ {
+			checkbox : true,
+			align : 'center',
+			valign : 'middle'
+		},{
+			title : '商品编号',
+			field : 'goodsid',
+			align : 'center'
+		},{
+			title : '商品名称',
+			field : 'goodsname',
+			align : 'center'
+		}, {
+			title : '库存数量',
+			field : 'storenum',
+			align : 'center'
+		}, {
+			title : '待发货数量',
+			field : 'salenum',
+			align : 'center'
+		} ];
+
+		$table.bootstrapTable({
+			url : '../store/queryStoreWarn',
+			method : "post",
+			dataType : "json",
+			contentType : "application/x-www-form-urlencoded",
+			striped : true,//隔行变色
+			cache : false, //是否使用缓存
+			showColumns : false,// 列
+			pagination : true, //分页
+			paginationLoop : false,
+			showPaginationSwitch : false,//是否显示数据条数选择框
+			sortable : false, //是否启用排序
+			singleSelect : false,
+			search : false, //显示搜索框
+			buttonsAlign : "right", //按钮对齐方式
+			showRefresh : false,//是否显示刷新按钮
+			sidePagination : "server", //服务端处理分页
+			pageNumber : 1,
+			pageSize : 5,
+			pageList : [ 5, 10, 25, 50 ],
+			undefinedText : '--',
+			uniqueId : "goodsid", //每一行的唯一标识，一般为主键列
+			queryParamsType : '',
+			queryParams : queryParams,//传递参数（*）
+			columns : columns
+		});
+
+		//得到查询的参数
+		function queryParams(params) {
+			var data = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+				pageSize : params.pageSize, //页面大小
+				pageNumber : params.pageNumber, //页码
+			};
+			return data;
+		};
+	});
+</script>
+</html>

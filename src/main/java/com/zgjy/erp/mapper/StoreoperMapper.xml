@@ -2,6 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zgjy.erp.mapper.StoreoperMapper">
 
+    <select id="queryStoreWarn" resultType="com.zgjy.erp.bean.StoreWarn">
+    select * from v_store_warn where storenum &lt; salenum
+    </select>
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.zgjy.erp.bean.Storeoper">

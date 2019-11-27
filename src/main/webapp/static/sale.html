@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" href="../css/bootstrap.min.css" />
+<link rel="stylesheet" href="../css/bootstrap-table.css" />
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/popper.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-validator.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-validator-zh-CN.js"></script>
+
+</head>
+<body>
+	<div class="container">
+		<h3>销售订单列表</h3>
+		<button id="order_add" type="button" class="btn btn-outline-secondary">
+			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增销售订单
+		</button>
+		<!-- 未出库订单显示 -->
+		<table id="ordertable"></table>
+		<span class="alert" id="alert" style="margin-left: 40%;"></span>
+		<div id="modal" class="modal fade">
+			<div class="modal-dialog">
+				<div class="modal-content" style="font-size: 11px;">
+					<div class="modal-header">
+						<h4 class="modal-title">订单详情</h4>
+						<button type="button" class="close" data-dismiss="modal"
+							aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="card">
+							<div class="card-header">销售订单</div>
+							<div class="card-body">
+								<form id="formSearch" class="form-inline">
+									<div class="form-group">
+										<label>客户</label> <select class="form-control" id="supplier"></select>
+									</div>
+								</form>
+							</div>
+						</div>
+						<table id="table"></table>
+						<div style="display: none;">总价：</div>
+						<div id="toolbar" class="btn-group">
+							<span>&nbsp;</span>
+							<button id="btn_add" type="button"
+								class="btn btn-outline-secondary">
+								<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+							</button>
+
+							<button id="btn_apply" type="button"
+								class="btn btn-outline-secondary">
+								<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>提交
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="dmodal" class="modal fade">
+			<div class="modal-dialog">
+				<div class="modal-content" style="font-size: 11px;">
+					<div class="modal-header">
+						<h4 class="modal-title">订单详情</h4>
+						<button type="button" class="close" data-dismiss="modal"
+							aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<table class="table table-bordered">
+							<tbody>
+								<tr>
+									<td class="bg-light text-dark">供应商</td>
+									<td id="supplierName"></td>
+									<td class="bg-light text-dark">状态</td>
+									<td id="state"></td>
+								</tr>
+								<tr>
+									<td class="bg-light text-dark">下单人</td>
+									<td id="creater"></td>
+									<td class="bg-light text-dark">库管员</td>
+									<td id="ender"></td>
+								</tr>
+								<tr>
+									<td class="bg-light text-dark">下单日期</td>
+									<td id="createTime"></td>
+									<td class="bg-light text-dark">出库日期</td>
+									<td id="endTime"></td>
+								</tr>
+							</tbody>
+						</table>
+						<table id="orderdetail"></table>
+					</div>
+				</div>
+			</div>
+			<!-- /.modal-content -->
+			<!-- 详情订单窗口 -->
+			<div id="smodal" class="modal fade">
+				<div class="modal-dialog">
+					<div class="modal-content" style="width: 50%; font-size: 12px;">
+						<div class="modal-header">
+							<h4 class="modal-title">订单明细</h4>
+							<button type="button" class="close" data-dismiss="modal"
+								aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<table class="table table-bordered">
+								<tbody>
+									<input type="hidden" id="odid" />
+									<tr>
+										<td class="bg-light text-dark">商品编号</td>
+										<td id="gid"></td>
+									</tr>
+									<tr>
+										<td class="bg-light text-dark">商品名称</td>
+										<td id="gname"></td>
+									</tr>
+									<tr>
+										<td class="bg-light text-dark">数量</td>
+										<td id="gnum"></td>
+									</tr>
+									<tr>
+										<td class="bg-light text-dark">仓库</td>
+										<td><select id="store"></select></td>
+									</tr>
+								</tbody>
+							</table>
+							<button class="btn btn-outline-secondary" id="outstore">出库</button>
+						</div>
+						<!-- /.modal-content -->
+					</div>
+					<!-- /.modal-dialog -->
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	var $table = $("#table");
+	var $ordertable = $("#ordertable");
+	var $alert = $('#alert').hide();
+	var $modal = $("#modal");
+	var oid='';
+	var json;
+	$(function() {
+		//获取客户的信息
+		$.ajax({
+			url: "../supplier/queryAll?type=2",
+			type:"get",
+			dataType:"json",
+			success: function(result){
+				for(var i in result){
+					$("#supplier").append("<option value='"+result[i].sid+"'>"+result[i].name+"</option>")
+				}
+			}
+		});
+
+
+		//未出库订单
+		var ocolumns = [ {
+			checkbox : true,
+			align : 'center',
+			valign : 'middle'
+		}, {
+			title : '编号',
+			field : 'oid',
+			align : 'center'
+		}, {
+			title : '创建日期',
+			field : 'createtime',
+			align : 'center',
+			formatter : function(value, row, index) {
+				return getDate(value);
+			}
+		}, {
+			title : '创建人',
+			field : 'creatername',
+			align : 'center'
+		}, {
+			title : '库管员',
+			field : 'storename',
+			align : 'center'
+		}, {
+			title : '供应商',
+			field : 'suppliername',
+			align : 'center'
+		}, {
+			title : '状态',
+			field : 'state',
+			align : 'center',
+			formatter : function(value) {
+				return getState(value);
+			}
+		} ];
+
+		$ordertable.bootstrapTable({
+			url : 'list?type=2',
+			method : "post",
+			dataType : "json",
+			contentType : "application/x-www-form-urlencoded",
+			striped : true,//隔行变色
+			cache : false, //是否使用缓存
+			showColumns : false,// 列
+			pagination : true, //分页
+			paginationLoop : false,
+			showPaginationSwitch : false,//是否显示数据条数选择框
+			sortable : false, //是否启用排序
+			singleSelect : false,
+			search : false, //显示搜索框
+			buttonsAlign : "right", //按钮对齐方式
+			showRefresh : false,//是否显示刷新按钮
+			sidePagination : "server", //服务端处理分页
+			pageNumber : 1,
+			pageSize : 5,
+			pageList : [ 5, 10, 25, 50 ],
+			undefinedText : '',
+			uniqueId : "oid", //每一行的唯一标识，一般为主键列
+			queryParamsType : '',
+			queryParams : oqueryParams,//传递参数（*）
+			columns : ocolumns,
+			onDblClickRow : function(row, $element, field) {
+				showOrderdetail(row);
+			}
+		});
+
+		//得到查询的参数
+		function oqueryParams(params) {
+			var data = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+				pageSize : params.pageSize, //页面大小
+				pageNumber : params.pageNumber, //页码
+			};
+			return data;
+		}
+		;
+
+		//新增销售订单
+		$("#order_add").click(function() {
+			$modal.modal('show');
+		})
+
+		$('#btn_apply').click(function() {
+			var json = JSON.stringify($table.bootstrapTable('getData'));
+			$.ajax({
+				url: "../order/add",
+				data:{"sid":$("#supplier").val(),"supplierName":$("#supplier option:selected").text(),"type":"2","json":json},
+				type:"post",
+				dataType:"json",
+				success: function(result){
+					if(result.status==1){
+						alert("操作成功");
+					}else{
+						alert("操作失败");
+					}
+				}
+			});
+		})
+
+
+		var columns = [
+				{
+					checkbox : true,
+					align : 'center',
+					valign : 'middle'
+				},
+				{
+					title : '商品编号',
+					field : 'gid',
+					align : 'center'
+				},
+				{
+					title : '商品名称',
+					field : 'gname',
+					align : 'center'
+				},
+				{
+					title : '价格',
+					field : 'price',
+					align : 'center'
+				},
+				{
+					title : '数量',
+					field : 'num',
+					align : 'center'
+				},
+				{
+					title : '总额',
+					field : 'money',
+					align : 'center'
+				},
+				{
+					title : '操作',
+					field : 'gid',
+					align : 'center',
+					formatter : function(value, row, index) {
+						var a = '<a href="javascript:" class="btn-link" onclick="del(\''
+								+ row.gid + '\')">删除</a>';
+						return a;
+					}
+				} ];
+
+		$table.bootstrapTable({
+			// 			url : 'list',
+			method : "post",
+			dataType : "json",
+			contentType : "application/x-www-form-urlencoded",
+			toolbar : '#toolbar',
+			striped : true,//隔行变色
+			cache : false, //是否使用缓存
+			showColumns : false,// 列
+			clickEdit : true,
+			clickToSelect : true,
+			pagination : false, //分页
+			paginationLoop : false,
+			showPaginationSwitch : false,//是否显示数据条数选择框
+			sortable : false, //是否启用排序
+			singleSelect : false,
+			search : false, //显示搜索框
+			buttonsAlign : "right", //按钮对齐方式
+			showRefresh : false,//是否显示刷新按钮
+			sidePagination : "server", //服务端处理分页
+			pageNumber : 1,
+			pageSize : 5,
+			pageList : [ 5, 10, 25, 50 ],
+			undefinedText : '--',
+			uniqueId : "gid", //每一行的唯一标识，一般为主键列
+			queryParamsType : '',
+			queryParams : queryParams,//传递参数（*）
+			columns : columns,
+			onClickCell : function(field, value, row, $element) {
+				$element.attr('contenteditable', true);
+				$element.blur(function() {
+					var index = $element.parent().data('index');
+					var tdValue = $element.html();
+					saveData(index, field, tdValue);
+				})
+			}
+		});
+
+		//得到查询的参数
+		function queryParams(params) {
+			var data = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+				pageSize : params.pageSize, //页面大小
+				pageNumber : params.pageNumber
+			//页码
+			};
+			return data;
+		}
+		;
+
+		$.ajax({
+			url : '../goods/queryAll',
+			method : 'post',
+			dataType : 'json',
+			success : function(result) {
+				var arr = result;
+				json = arr;
+			}
+		})
+		$("#btn_add").click(
+			function() {
+				var index = $table.bootstrapTable('getData').length;
+				var html = '<select onchange="fn(this);" id="goods"><option value="-1">请选择</option>';
+				for ( var i in json) {
+					html += "<option value='"+json[i].gid+"'>"
+							+ json[i].gname + "</option>";
+				}
+				html += "</select>";
+				$table.bootstrapTable(
+					'insertRow',
+					{
+						index : index,
+						row : {
+							gid : '',
+							gname : html,
+							inprice : '',
+							num : '<input type="text" class="num" onblur="fn2(this)"/>',
+							money : ''
+						}
+					});
+			})
+
+		//出库
+		$("#outstore").click(function(){})
+				
+
+		});
+	//选择商品
+	function fn(e) {
+		for ( var i in json) {
+			if ($(e).val() == json[i].gid) {
+				$(e).parent().prev().text(json[i].gid);
+				$(e).find("option[value=" + $(e).val() + "]").attr('selected',
+						'selected');
+				$(e).parent().next().text(json[i].outprice);
+			}
+		}
+		var index = $(e).parent().parent().data('index');
+		saveData(index, 'gid', $(e).parent().prev().html());
+		saveData(index, 'gname', $(e).find("option[value=" + $(e).val() + "]")
+				.text());
+		saveData(index, 'price', $(e).parent().next().html());
+	}
+	//设置商品数量
+	function fn2(e) {
+		var index = $(e).parent().parent().data('index');
+		var price = $(e).parent().prev().text() || 0;
+		var num = $(e).val();
+		$(e).parent().next().text(price * num);
+		// 		$(e).parent().find("input[class='num']").attr("value",num);
+		saveData(index, 'num', num);
+		saveData(index, 'money', price * num);
+	}
+
+	function saveData(index, field, value) {
+		$table.bootstrapTable('updateCell', {
+			index : index, //行索引
+			field : field, //列名
+			value : value
+		//cell值
+		})
+	}
+
+	function showAlert(title, type) {
+		$alert.attr('class', 'alert alert-' + type || 'success').html(
+				'<i class="glyphicon glyphicon-check"></i> ' + title).show()
+		setTimeout(function() {
+			$alert.hide()
+		}, 3000)
+	}
+
+	function del(id) {
+		$table.bootstrapTable('remove', {
+			field : 'gid',
+			values : id
+		});
+	}
+
+	function getDate(data) {
+		if (data != null) {
+			var oDate = new Date(data), oYear = oDate.getFullYear(), oMonth = oDate
+					.getMonth() + 1, oDay = oDate.getDate(), oHour = oDate
+					.getHours(), oMin = oDate.getMinutes(), oSen = oDate
+					.getSeconds(), oTime = oYear + '-' + getzf(oMonth) + '-'
+					+ getzf(oDay);
+			//' ' + getzf(oHour) + ':' + getzf(oMin) + ':'+getzf(oSen);//最后拼接时间  
+			return oTime;
+		}
+		return null;
+	}
+	function getzf(num) {
+		if (parseInt(num) < 10) {
+			num = '0' + num;
+		}
+		return num;
+	}
+
+	function getState(state) {
+		if (state == 0) {
+			return '未出库';
+		} else if (state == 1) {
+			return '已出库';
+		} else {
+			return '';
+		}
+	}
+
+	//双击要出库订单
+	function showOrderdetail(e) {
+		$("#dmodal").modal('show');
+		$("#supplierName").html(e.suppliername);
+		$("#state").html(getState(e.state));
+		$("#creater").html(e.creatername);
+		$("#ender").html(e.endername);
+		$("#createTime").html(getDate(e.createtime));
+		$("#endTime").html(getDate(e.endtime));
+		oid=e.oid;
+		var columns = [ {
+			title : '商品编号',
+			field : 'gid',
+			align : 'center'
+		}, {
+			title : '商品名称',
+			field : 'gname',
+			align : 'center'
+		}, {
+			title : '价格',
+			field : 'price',
+			align : 'center'
+		}, {
+			title : '数量',
+			field : 'num',
+			align : 'center'
+		}, {
+			title : '金额',
+			field : 'money',
+			align : 'center'
+		}, {
+			title : '状态',
+			field : 'state',
+			align : 'center',
+			formatter : function(value, row, index) {
+				if (value == null) {
+					return '未出库';
+				} else {
+					return '已出库';
+				}
+			}
+		} ];
+
+		$("#orderdetail").bootstrapTable(
+						{
+							url : '../orderDetail/queryOrderDetail?oid='+e.oid,
+							method : "post",
+							dataType : "json",
+							data : e.orderdetails,
+							contentType : "application/x-www-form-urlencoded",
+							striped : true,//隔行变色
+							cache : false, //是否使用缓存
+							showColumns : false,// 列
+							pagination : true, //分页
+							paginationLoop : false,
+							showPaginationSwitch : false,//是否显示数据条数选择框
+							sortable : false, //是否启用排序
+							singleSelect : false,
+							search : false, //显示搜索框
+							buttonsAlign : "right", //按钮对齐方式
+							showRefresh : false,//是否显示刷新按钮
+							sidePagination : "server", //服务端处理分页
+							pageNumber : 1,
+							pageSize : 5,
+							pageList : [ 5, 10, 25, 50 ],
+							undefinedText : '--',
+							uniqueId : "did", //每一行的唯一标识，一般为主键列
+							queryParamsType : '',
+							queryParams : queryParams2,//传递参数（*）
+							columns : columns,
+							onDblClickRow : function(row, $element, field) {
+								if (row.state == 1) {
+									return false;
+								} else {
+									$("#smodal").modal('show');
+									$("#odid").val(row.odid);
+									$("#gid").html(row.gid);
+									$("#gname").html(row.gname);
+									$("#gnum").html(row.num);
+									$.ajax({
+										url : '../store/queryAll',
+										method : 'post',
+										dataType : 'json',
+										success : function(result) {
+											var html = '';
+											for ( var i in result) {
+												html += '<option value="'+result[i].sid+'">'
+														+ result[i].name
+														+ '</option>';
+											}
+											$("#store").html(html);
+										}
+									})
+								}
+							}
+						});
+
+		//得到查询的参数
+		function queryParams2(params) {
+			var data = { 
+				pageSize : params.pageSize, //页面大小
+				pageNumber : params.pageNumber, //页码
+			};
+			return data;
+		}
+		;
+	}
+</script>
+</html>

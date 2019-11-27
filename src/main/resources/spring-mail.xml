@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xsi:schemaLocation=" http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd  "
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans">
+
+	<bean id="javaMailSender"
+		class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="protocol" value="smtp"></property><!--邮件协议-->
+		<property name="host" value="smtp.qq.com" /><!--发件箱的服务器地址-->
+		<property name="port" value="465"></property><!--端口-->
+		<property name="username" value="294332049@qq.com"></property><!--发件箱-->
+		<property name="password" value="nccerdnfqmicbjbb"></property><!--发件箱密码-->
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop><!--认证-->
+				<prop key="mail.smtp.ssl.enable">true</prop><!--登录安全-->
+			</props>
+		</property>
+	</bean>
+
+	<bean id="mailHelper" class="com.zgjy.erp.api.MailHelper">
+		<property name="sender" ref="javaMailSender"></property>
+	</bean>
+
+</beans>	
