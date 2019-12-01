@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.service.IService;
 import com.zgjy.erp.bean.TreeNode;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -18,4 +19,5 @@ public interface RoleService extends IService<Role> {
 
     List<TreeNode> queryRolesByEid(int eid);
 
+    Set<String> queryRolesByUsername(String username);
 }

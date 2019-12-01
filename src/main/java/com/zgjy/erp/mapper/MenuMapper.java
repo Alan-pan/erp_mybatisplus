@@ -3,6 +3,8 @@ package com.zgjy.erp.mapper;
 import com.zgjy.erp.bean.Menu;
 import com.baomidou.mybatisplus.mapper.BaseMapper;
 
+import java.util.Set;
+
 /**
  * <p>
  *  Mapper 接口
@@ -13,4 +15,5 @@ import com.baomidou.mybatisplus.mapper.BaseMapper;
  */
 public interface MenuMapper extends BaseMapper<Menu> {
 
+    Set<String> queryPrivilegesByUsername(String username);
 }

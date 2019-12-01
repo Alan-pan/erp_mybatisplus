@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>销售趋势统计</title>
+<link rel="stylesheet" href="../css/bootstrap.min.css" />
+<link rel="stylesheet" href="../css/bootstrap-table.css" />
+<link rel="stylesheet" href="../css/bootstrap-datetimepicker.min.css" />
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="../js/highcharts.js"></script>
+<script type="text/javascript"
+	src="../js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript"
+	src="../js/bootstrap-datetimepicker.zh-CN.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-4">
+				<div class="card">
+					<div class="card-header">销售统计表</div>
+					<div class="card-body">
+						<div class="form-group">
+							年份：<select id="year">
+								<option value="0">请选择年份</option>
+								<option value="2018">2018</option>
+								<option value="2019">2019</option></select>
+							<button class="btn btn-outline-secondary" id="search">查询</button>
+						</div>
+						<table id="table"></table>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-8">
+				<div class="card">
+					<div class="card-header">销售统计图</div>
+					<div class="card-body">
+						<div id="trendChart"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var $table = $("#table");
+
+		$(function() {
+			var columns = [ {
+				title : '月份',
+				field : 'month',
+				align : 'center'
+			}, {
+				title : '销售额',
+				field : 'y',
+				align : 'center'
+			} ];
+
+			$table.bootstrapTable({
+				url : '../order/trend',
+				method : "post",
+				dataType : "json",
+				contentType : "application/x-www-form-urlencoded",
+				striped : true,//隔行变色
+				cache : false, //是否使用缓存
+				showColumns : false,// 列
+				pagination : false, //分页
+				paginationLoop : false,
+				showPaginationSwitch : false,//是否显示数据条数选择框
+				sortable : false, //是否启用排序
+				singleSelect : false,
+				search : false, //显示搜索框
+				buttonsAlign : "right", //按钮对齐方式
+				showRefresh : false,//是否显示刷新按钮
+				sidePagination : "server", //服务端处理分页
+				pageNumber : 1,
+				pageSize : 5,
+				pageList : [ 5, 10, 25, 50 ],
+				undefinedText : '',
+				uniqueId : "did", //每一行的唯一标识，一般为主键列
+				columns : columns,
+				queryParams:queryParams
+			});
+
+			//得到查询的参数
+			function queryParams(params) {
+				var data = {
+					year:$('#year').val()
+				};
+				return data;
+			};
+
+
+			$("#search").click(function() {
+				$table.bootstrapTable('refresh');
+				$.ajax({
+					url : '../order/trend?year='+$('#year').val(),
+					method : 'post',
+					dataType : 'json',
+					success : function(result) {
+						showChart(result);
+					}
+
+				})
+			})
+		})
+
+		function showChart(data) {
+			var monthData = new Array();
+			for (var i = 1; i <= 12; i++) {
+				monthData.push(i);
+			}
+			$('#trendChart').highcharts({
+				title : {
+					text : $('#year').val() + '年销售趋势分析',
+					x : -20
+				//center
+				},
+				subtitle : {
+					text : 'erp销售趋势',
+					x : -20
+				},
+				xAxis : {
+					categories : monthData
+				},
+				yAxis : {
+					title : {
+						text : '销售额（元）'
+					},
+					plotLines : [ {
+						value : 0,
+						width : 1,
+						color : '#808080'
+					} ]
+				},
+				tooltip : {
+					valueSuffix : '元'
+				},
+				legend : {
+					layout : 'vertical',
+					align : 'center',
+					verticalAlign : 'bottom',
+					borderWidth : 0
+				},
+				series : [ {
+					name : '全部商品',
+					data : data
+				} ]
+			});
+		}
+	</script>
+</body>
+</html>

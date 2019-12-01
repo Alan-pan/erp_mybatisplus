@@ -14,4 +14,7 @@
         rid, name
     </sql>
 
+    <select id="queryRolesByUsername" resultType="string">
+    select r.name from t_role r,t_emp e,t_emp_role er where er.rid=r.rid and er.eid=e.eid and e.username=#{username}
+  </select>
 </mapper>

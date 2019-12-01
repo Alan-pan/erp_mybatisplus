@@ -4,7 +4,10 @@ import com.zgjy.erp.bean.Menu;
 import com.zgjy.erp.mapper.MenuMapper;
 import com.zgjy.erp.service.MenuService;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 /**
  * <p>
@@ -16,5 +19,10 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements MenuService {
-
+    @Autowired
+    MenuMapper menuMapper;
+    @Override
+    public Set<String> queryPrivilegesByUsername(String username) {
+        return menuMapper.queryPrivilegesByUsername(username);
+    }
 }

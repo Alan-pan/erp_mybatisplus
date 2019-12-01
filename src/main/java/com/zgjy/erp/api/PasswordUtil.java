@@ -2,6 +2,8 @@ package com.zgjy.erp.api;
 
 
 import org.apache.shiro.codec.Hex;
+import org.apache.shiro.crypto.hash.SimpleHash;
+import org.apache.shiro.util.ByteSource;
 
 import java.security.MessageDigest;
 import java.util.Random;
@@ -43,6 +45,18 @@ public class PasswordUtil {
         return md5Hex(password + salt).equals(new String(cs1));
     }
 
+    //采用shiro框架加密保持一致
+    public static String shiroMD5(String username){
+        //加密方式
+        String hashAlgorithmName = "MD5";
+        //String credentials = "123456";
+        //盐
+        ByteSource credentialsSalt = ByteSource.Util.bytes(username+"erp");
+        //加密次数
+        int hashIterations = 2;
+        Object obj = new SimpleHash(hashAlgorithmName, "123", credentialsSalt, hashIterations);
+        return obj.toString();
+    }
 
     public static String md5Hex(String src) {
         try {
@@ -52,5 +66,13 @@ public class PasswordUtil {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static void main(String[] args) {
+        String admin = PasswordUtil.shiroMD5("admin");
+        System.out.println(admin);
+
+        SimpleHash simpleHash = new SimpleHash("MD5", "123", ByteSource.Util.bytes("adminerp"), 2);
+        System.out.println(simpleHash);
     }
 }

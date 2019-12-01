@@ -5,19 +5,18 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.baomidou.mybatisplus.plugins.Page;
 import com.zgjy.erp.bean.Emp;
-import com.zgjy.erp.bean.Menu;
 import com.zgjy.erp.service.EmpService;
 import com.zgjy.erp.service.MenuService;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.IncorrectCredentialsException;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
@@ -63,8 +62,24 @@ public class EmpController {
     }
 
     @RequestMapping("/login")
-    public ModelAndView login(Emp emp, HttpSession session) {
-        //重定向页面需要写全路径以本项目开始路径
+    public String login(Emp emp, HttpSession session,Map map) {
+        //将前台传来的账号和密码封装到token对象中
+        UsernamePasswordToken token=new UsernamePasswordToken(emp.getUsername(),emp.getPassword());
+        try{
+            //获取当前用户
+            Subject currentUser = SecurityUtils.getSubject();
+            if(!currentUser.isAuthenticated()){//if判断该用户没有登录
+                //去认证当前用户在userRealm设置的内容
+                currentUser.login(token);
+                token.setRememberMe(false);
+            }}
+        catch (IncorrectCredentialsException e) {
+            e.printStackTrace();
+            map.put("code","登录失败："+"账号密码不正确");
+            return "login";
+        }
+        return "test";
+        /*   //重定向页面需要写全路径以本项目开始路径
         if (empService.login(emp)) {
             ModelAndView mv = new ModelAndView("main");
             //设置菜单
@@ -79,7 +94,7 @@ public class EmpController {
             RedirectAttributes redirect=new RedirectAttributesModelMap();
             redirect.addAttribute("用户名或密码错误");
             return new ModelAndView("redirect:/static/login.html");
-        }
+        }*/
     }
 
 }

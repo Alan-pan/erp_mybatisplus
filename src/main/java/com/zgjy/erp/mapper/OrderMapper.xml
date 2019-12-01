@@ -2,6 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zgjy.erp.mapper.OrderMapper">
 
+    <select id="querySaleByPerMonth" resultType="java.util.HashMap">
+        select month(o.createtime) as month,sum(money) as y
+        from t_orderdetail od,t_order o
+        where o.oid=od.oid
+        <if test="year!=null and year!=0">
+            and year(o.createtime)=${year}
+        </if>
+        group by month(o.createtime)
+    </select>
+
+    <select id="queryOrder" resultType="java.util.HashMap">
+        select gc.name,sum(od.money) as y from t_goods g,t_goods_category gc,t_order o,t_orderdetail od
+        where o.oid=od.oid and g.gid=od.gid and g.gcid=gc.gcid and o.type=2
+        <if test="param1!=''">
+            and #{param1} &lt; o.createtime
+        </if>
+        <if test="param2!=''">
+            and  o.createtime &lt; #{param2}
+        </if>
+    </select>
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.zgjy.erp.bean.Order">

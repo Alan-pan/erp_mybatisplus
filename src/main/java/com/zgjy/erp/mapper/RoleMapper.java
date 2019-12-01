@@ -3,6 +3,8 @@ package com.zgjy.erp.mapper;
 import com.zgjy.erp.bean.Role;
 import com.baomidou.mybatisplus.mapper.BaseMapper;
 
+import java.util.Set;
+
 /**
  * <p>
  *  Mapper 接口
@@ -13,4 +15,5 @@ import com.baomidou.mybatisplus.mapper.BaseMapper;
  */
 public interface RoleMapper extends BaseMapper<Role> {
 
+    Set<String> queryRolesByUsername(String username);
 }

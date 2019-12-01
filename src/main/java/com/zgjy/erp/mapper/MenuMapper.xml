@@ -5,10 +5,10 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.zgjy.erp.bean.Menu">
-        <id column="mid" property="mid" />
-        <result column="name" property="name" />
-        <result column="url" property="url" />
-        <result column="pid" property="pid" />
+        <id column="mid" property="mid"/>
+        <result column="name" property="name"/>
+        <result column="url" property="url"/>
+        <result column="pid" property="pid"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->
@@ -16,4 +16,7 @@
         mid, name, url, pid
     </sql>
 
+    <select id="queryPrivilegesByUsername" parameterType="string" resultType="string">
+    select m.name from t_menu m,t_role_menu rm, t_emp_role er,t_emp e where m.mid=rm.mid and rm.rid=er.rid and er.eid=e.eid and e.username=#{username}
+  </select>
 </mapper>

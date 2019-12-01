@@ -10,6 +10,7 @@ import com.zgjy.erp.bean.Storeoper;
 import com.zgjy.erp.mapper.OrderMapper;
 import com.zgjy.erp.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import org.springframework.stereotype.Controller;
@@ -17,10 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>
@@ -39,6 +37,47 @@ public class OrderController {
     OrderdetailService odService;
     @Autowired
     StoredetailService sdService;
+    @Autowired
+    OrderMapper orderMapper;
+    @RequestMapping("/trend")
+    @ResponseBody
+    public List trend(String year){
+        List<Map> res=new ArrayList<>();
+        List<Map> lines = orderMapper.querySaleByPerMonth(year);
+        for(int i=1;i<=12;i++){
+            boolean flag=false;//默认不存在
+            for(Map map:lines){
+                if(map.get("month").equals(i)){
+                    flag=true;
+                    res.add(map);
+                    break;
+                }
+            }
+            if(!flag){
+                Map map=new HashMap();
+                map.put("month",i);
+                map.put("y",0);
+                res.add(map);
+            }
+        }
+        return res;
+    }
+
+    @RequestMapping("/orderReport")
+    @ResponseBody
+    public Map orderReport(String d,String d2){
+        if(!StringUtils.isEmpty(d))
+            d=d.substring(0,10);
+        if(!StringUtils.isEmpty(d2))
+            d2=d2.substring(0,10);
+
+        List<HashMap> list = orderMapper.queryOrder(d, d2);
+        System.out.println(list);
+        Map map=new HashMap();
+        map.put("rows",list);
+        map.put("total",list.size());
+        return map;
+    }
 
     //    url: "../order/add",
 //    data:{"sid":sid,"supplierName":supplierName,"json":json},
@@ -157,5 +196,6 @@ public class OrderController {
         }
         return false;
     }
+
 }
 

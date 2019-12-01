@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>销售统计</title>
+<link rel="stylesheet" href="../css/bootstrap.min.css" />
+<link rel="stylesheet" href="../css/bootstrap-table.css" />
+<link rel="stylesheet" href="../css/bootstrap-datetimepicker.min.css" />
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-table-zh-CN.min.js"></script>
+<script type="text/javascript" src="../js/highcharts.js"></script>
+<script type="text/javascript" src="../js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript" src="../js/bootstrap-datetimepicker.zh-CN.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-7">
+				<div class="card">
+					<div class="card-header">销售统计表</div>
+					<div class="card-body">
+					<div class="form-group">
+						<div class="input-group date form_date col-md-8" data-date-format="yyyy-mm-dd" >
+							开始时间：
+							<input class="form-control" size="12" type="text" id="startTime" readonly> 
+							<span class="input-group-addon">
+							<span class="glyphicon glyphicon-calendar"></span>
+							</span>
+						</div>	
+						<div class="input-group date form_date col-md-8" data-date-format="yyyy-mm-dd" >
+							结束时间：
+							<input class="form-control" size="12" type="text" id="endTime" readonly> 
+							<span class="input-group-addon">
+							<span class="glyphicon glyphicon-calendar"></span>
+							</span>
+							<button class="btn btn-outline-secondary" id="search">查询</button>
+						</div>
+					</div>
+						<table id="table"></table>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-5">
+				<div class="card">
+					<div class="card-header">销售统计图</div>
+					<div class="card-body">
+						<div id="pieChart"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var $table=$("#table");
+		
+		$('.form_date').datetimepicker({
+			language : 'zh-CN',
+			weekStart : 1,
+			todayBtn : 1,
+			autoclose : 1,
+			todayHighlight : 1,
+			startView : 2,
+			minView : 2,
+			forceParse : 0
+		});
+		
+		$(function() {
+			var columns = [ {
+				title : '商品类型',
+				field : 'name',
+				align : 'center'
+			}, {
+				title : '销售额',
+				field : 'y',
+				align : 'center'
+			} ];
+
+			$table.bootstrapTable({
+				url : '../order/orderReport',
+				method : "post",
+				dataType : "json",
+				contentType : "application/x-www-form-urlencoded",
+				striped : true,//隔行变色
+				cache : false, //是否使用缓存
+				showColumns : false,// 列
+				pagination : true, //分页
+				paginationLoop : false,
+				showPaginationSwitch : false,//是否显示数据条数选择框
+				sortable : false, //是否启用排序
+				singleSelect : false,
+				search : false, //显示搜索框
+				buttonsAlign : "right", //按钮对齐方式
+				showRefresh : false,//是否显示刷新按钮
+				sidePagination : "server", //服务端处理分页
+				pageNumber : 1,
+				pageSize : 5,
+				pageList : [ 5, 10, 25, 50 ],
+				undefinedText : '',
+				uniqueId : "name", //每一行的唯一标识，一般为主键列
+				queryParamsType : '',
+				queryParams : queryParams,//传递参数（*）
+				columns : columns
+			});
+
+			//得到查询的参数
+			function queryParams(params) {
+				var time=$("#startTime").val();
+				var time2=$("#endTime").val();
+				if(time!=''){
+					time=time+" 00:00:00";
+				}
+				if(time2!=''){
+					time2=time2+" 23:59:59";
+				}
+				var data = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+// 					pageSize : params.pageSize, //页面大小
+// 					pageNumber : params.pageNumber, //页码
+					d:time,
+					d2:time2
+				};
+				return data;
+			};
+
+			$("#search").click(function() {
+				//$table.bootstrapTable('destroy');
+				$table.bootstrapTable('refresh');
+				initPie();//初始化报表
+			})
+
+			initPie();//初始化报表
+
+		})
+
+		function initPie(){
+
+			var time=$("#startTime").val();
+			var time2=$("#endTime").val();
+			if(time!=''){
+				time=time+" 00:00:00";
+			}
+			if(time2!=''){
+				time2=time2+" 23:59:59";
+			}
+			var data = {
+				d:time,
+				d2:time2
+			};
+
+			// 饼状图的业务
+			$.ajax({
+				url:'../order/orderReport',
+				method:'post',
+				data:data,
+				dataType:'json',
+				success:function(result){
+					console.log(result.rows);
+					showChart(result.rows);
+				}
+
+			})
+		}
+		
+		function showChart(data){
+			$("#pieChart").highcharts({
+				chart:{
+					plotBackgroundColor:null,
+					plotBorderWidth:null,
+					plotShadow:null,
+					type:'pie'
+				},
+				title:{
+					text:'销售统计'
+				},
+				tooltip:{
+					pointFormat:'{series.name}:<b>{point.percentage:.1f}%</b>'
+				},
+				plotOptions:{
+					pie:{
+						allowPointSelect:true,
+						cursor:'pointer',
+						dataLabels:{
+							enabled:true,
+							format:'<b>{point.name}<b>{point.percentage:.1f}%</b>'
+						},
+						showInLegend:true
+					}
+				},
+				series:[{
+					name:'比例',
+					colorByPoint:true,
+					data:data
+				}]
+			})
+		}
+	</script>
+</body>
+</html>

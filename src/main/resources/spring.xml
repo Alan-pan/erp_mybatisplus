@@ -7,5 +7,5 @@
     <import resource="classpath:spring-redis.xml"></import>
     <import resource="classpath:spring-mail.xml"></import>
     <import resource="classpath:spring-job.xml"></import>
-
+    <import resource="spring-shiro.xml"></import>
 </beans>

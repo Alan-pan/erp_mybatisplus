@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -52,6 +53,11 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
             list.add(treeNode);
         }
         return list;
+    }
+
+    @Override
+    public Set<String> queryRolesByUsername(String username) {
+        return roleMapper.queryRolesByUsername(username);
     }
 
 }
