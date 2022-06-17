@@ -13,7 +13,7 @@
         <!--指定spring的版本-->
         <spring.version>4.3.19.RELEASE</spring.version>
         <pager.version>5.0.0</pager.version>
-        <fastjson.version>1.2.54</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <formvalidte.version>5.4.1.Final</formvalidte.version>
         <mybatis.version>3.4.6</mybatis.version>
         <druid.version>1.1.12</druid.version>
